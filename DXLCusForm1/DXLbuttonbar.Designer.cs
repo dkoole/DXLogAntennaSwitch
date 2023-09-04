@@ -95,6 +95,7 @@
             // Connect
             // 
             this.Connect.BackColor = System.Drawing.SystemColors.Highlight;
+            this.Connect.Enabled = false;
             this.Connect.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Connect.ForeColor = System.Drawing.Color.White;
             this.Connect.Location = new System.Drawing.Point(213, 10);
@@ -111,9 +112,8 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(37, 13);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(122, 17);
+            this.label1.Size = new System.Drawing.Size(0, 17);
             this.label1.TabIndex = 10;
-            this.label1.Text = "192.168.178.51";
             this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // DXLbuttonbar
@@ -133,7 +133,9 @@
             this.MinimizeBox = false;
             this.Name = "DXLbuttonbar";
             this.Text = "Antenna Switch PA2DK";
+            this.Activated += new System.EventHandler(this.DXLbuttonbar_Activated);
             this.Load += new System.EventHandler(this.DXLbuttonbar_Load);
+            this.Shown += new System.EventHandler(this.DXLbuttonbar_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();
 

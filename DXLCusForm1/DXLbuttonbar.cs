@@ -2,9 +2,12 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Net.WebSockets;
+using System.Net;
 using System.Threading;
 using System.Text;
+using System.Xml;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace DXLog.net
 {
@@ -26,11 +29,14 @@ namespace DXLog.net
 
         private FrmMain mainForm = null;
 
+        private String antennaSwitchIp = "";
+
         private delegate void newQsoSaved(DXQSO qso);
 
         public DXLbuttonbar()
         {
             InitializeComponent();
+
         }
 
         public DXLbuttonbar(ContestData cdata)
@@ -39,13 +45,34 @@ namespace DXLog.net
             ColorSetTypes = new string[] { "Background", "Color", "Header back color", "Header color", "Footer back color", "Footer color", "Final score color", "Selection back color", "Selection color" };
             DefaultColors = new Color[] { Color.Turquoise, Color.Black, Color.Gray, Color.Black, Color.Silver, Color.Black, Color.Blue, Color.SteelBlue, Color.White };
             FormLayoutChangeEvent += new FormLayoutChange(Handle_FormLayoutChangeEvent);
+            try
+            {
+                string assemblyFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string configFileName = Path.Combine(assemblyFolder, "antenna_switch.txt");
+                string configString = File.ReadAllText(@configFileName);
+                this.label1.Text = configString;
+                try
+                {
+                    IPAddress address = IPAddress.Parse(configString);
+                    antennaSwitchIp = configString;
+                    this.label1.Text = antennaSwitchIp;
+                    this.Connect.Enabled = true;
+                } catch (Exception)
+                {
+                    this.label1.Text = "Could not parse IP";
+                }
+            }
+            catch (Exception)
+            {
+                this.label1.Text = "No Config File";
+            }
         }
 
         private async Task ReceiveWebsocketData()
         {
             try
             {
-                using (var ms = new System.IO.MemoryStream())
+                using (var ms = new MemoryStream())
                 {
                     while (client.State == WebSocketState.Open)
                     {
@@ -90,7 +117,7 @@ namespace DXLog.net
                                 this.ANT4.BackColor = Color.Red;
                             }
                         }
-                        ms.Seek(0, System.IO.SeekOrigin.Begin);
+                        ms.Seek(0, SeekOrigin.Begin);
                         ms.Position = 0;
                     }
                 }
@@ -103,6 +130,7 @@ namespace DXLog.net
         private void Handle_FormLayoutChangeEvent()
         {
             InitializeLayout();
+
         }
 
         public override void InitializeLayout()
@@ -122,8 +150,6 @@ namespace DXLog.net
             contextMenuStrip1.Items.RemoveByKey("fixWindowSizeToolStripMenuItem");
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
         }
-
-        // Valid arguments for SendKeyMessage are F1-F7, INSERT, PLUS, and ALTF1-F12.
 
         private async void F1_Click(object sender, EventArgs e)
         {
@@ -160,7 +186,7 @@ namespace DXLog.net
             if(client.State != WebSocketState.Open)
             {
                 client = new ClientWebSocket();
-                await client.ConnectAsync(new Uri("ws://192.168.178.51/ws"), CancellationToken.None);
+                await client.ConnectAsync(new Uri($"ws://{antennaSwitchIp}/ws"), CancellationToken.None);
                 this.Connect.Text = "Disconnect";
                 this.ANT1.Enabled = true;
                 this.ANT2.Enabled = true;
@@ -187,5 +213,21 @@ namespace DXLog.net
         {
 
         }
+
+        private void DXLbuttonbar_Shown(object sender, EventArgs e)
+        {
+
+        }
+
+        private void DXLbuttonbar_Activated(object sender, EventArgs e)
+        {
+
+        }
     }
+
+    public class AntennaSwitchConfig
+    {
+        public string IpAddress { get; set; }
+    }
+
 }
